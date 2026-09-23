@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Task> tasks = [];
-
+  Task? selectedTask;
   // form fields
   String? _title;
   String? _description;
@@ -94,6 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return tasks.any((item) => task.hashedValue == item.hashedValue);
   }
 
+  void editTask(StateSetter updateBottomSheet) {
+    tasks.remove(selectedTask);
+    _addNewTask(updateBottomSheet);
+  }
+
   Future<void> openDateTimePopUp(StateSetter updateBottomSheet) async {
     TimeOfDay? selectedTime;
     DateTime? selectedDate = await showDatePicker(
@@ -134,7 +139,19 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _addModelSheet() async {
+  Future<void> _openModelSheet() async {
+    if (selectedTask != null) {
+      DateTime selectedDateTime = selectedTask!.dateTime!;
+      _pickedDate = DateTime(
+        selectedDateTime.year,
+        selectedDateTime.month,
+        selectedDateTime.day,
+      );
+      _pickedTime = TimeOfDay(
+        hour: selectedDateTime.hour,
+        minute: selectedDateTime.minute,
+      );
+    }
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -163,6 +180,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           }
                           return null;
                         },
+                        initialValue: selectedTask != null
+                            ? selectedTask!.title
+                            : '',
                         onSaved: (value) {
                           _title = value;
                         },
@@ -196,6 +216,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextFormField(
                         maxLength: 30,
                         keyboardType: TextInputType.text,
+                        initialValue: selectedTask != null
+                            ? selectedTask!.description
+                            : '',
                         onSaved: (value) {
                           _description = value;
                         },
@@ -258,8 +281,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               .colorScheme
                               .onSecondary,
                         ),
-                        onPressed: () => _addNewTask(setBottomSheet),
-                        child: Text('Add'),
+                        onPressed: () => selectedTask != null
+                            ? editTask(setBottomSheet)
+                            : _addNewTask(setBottomSheet),
+                        child: selectedTask != null
+                            ? Text('Edit')
+                            : Text('Add'),
                       ),
                     ],
                   ),
@@ -280,6 +307,13 @@ class _HomeScreenState extends State<HomeScreen> {
     tasks = await StorageClass.getTasks();
     setState(() {
       _initialLoadingBool = false;
+    });
+  }
+
+  void _tileOnTap(int index) {
+    setState(() {
+      selectedTask = tasks[index];
+      _openModelSheet();
     });
   }
 
@@ -365,6 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _removeTask(tasks[index], index);
             },
             child: ListTile(
+              onTap: () => _tileOnTap(index),
               trailing: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -405,7 +440,11 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
             padding: EdgeInsets.all(18),
           ),
-          onPressed: _addModelSheet,
+          onPressed: () {
+            selectedTask = null;
+            _pickedDate = null;
+            _openModelSheet();
+          },
           label: Text('Task', style: Theme.of(context).textTheme.bodyLarge),
           icon: Icon(Icons.add, color: Theme.of(context).colorScheme.onSurface),
         ),
