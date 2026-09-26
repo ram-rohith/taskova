@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:taskova/model/notification.dart';
 import 'package:taskova/screens/home.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initNotificationsSettings();
   runApp(const MyApp());
 }
 
