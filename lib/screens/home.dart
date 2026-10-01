@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:taskova/model/notification.dart';
 import 'package:taskova/model/storage.dart';
 import 'package:taskova/model/task.dart';
 
@@ -83,7 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       sortTasks();
       await StorageClass.saveTasks(tasks);
-      await Notifications(dateTime: newTask.dateTime, title: newTask.title);
       _pickedDate = null;
       _pickedTime = null;
       updateBottomSheet(() {});
